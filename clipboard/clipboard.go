@@ -1,12 +1,10 @@
 package clipboard
 
 import (
-	"fmt"
 	"os/exec"
 )
 
 func CopyToClipboard(text string) (bool, error) {
-	fmt.Println("Copying password to clipboard...")
 	copyCmd := exec.Command("pbcopy")
 	in, err := copyCmd.StdinPipe()
 	if err != nil {

@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,19 +11,15 @@ var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "Remove a login",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Remove a login...")
 		toRemove, err := cmd.Flags().GetString("login")
 		if err != nil {
 			log.Fatal(err)
 		}
 		if toRemove == "" {
-			fmt.Print("Enter Login to remove: ")
-			reader := bufio.NewReader(os.Stdin)
-			toRemove, err = reader.ReadString('\n')
+			toRemove, err = readStringInput("Enter login to remove: ")
 			if err != nil {
 				log.Fatal(err)
 			}
-			toRemove = toRemove[:len(toRemove)-1]
 		}
 		fmt.Println("Removing { ", toRemove, " }")
 	},
