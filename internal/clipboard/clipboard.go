@@ -4,20 +4,20 @@ import (
 	"os/exec"
 )
 
-func CopyToClipboard(text string) (bool, error) {
+func CopyToClipboard(text string) error {
 	copyCmd := exec.Command("pbcopy")
 	in, err := copyCmd.StdinPipe()
 	if err != nil {
-		return false, err
+		return err
 	}
 	if err := copyCmd.Start(); err != nil {
-		return false, err
+		return err
 	}
 	if _, err := in.Write([]byte(text)); err != nil {
-		return false, err
+		return err
 	}
 	if err := in.Close(); err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }

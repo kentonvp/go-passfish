@@ -11,11 +11,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const AppName = "passfish"
+const Version = "0.1.0"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "passfish",
+	Use:     AppName,
 	Short:   "CLI Password Manager",
-	Version: "0.1.0",
+	Version: Version,
+	Run: func(cmd *cobra.Command, args []string) {
+		if config, err := cmd.Flags().GetInt("config"); err != nil {
+			log.Fatal(err)
+		} else {
+			fmt.Println("Using config file: ", config)
+		}
+	},
 }
 
 var cfgFile string

@@ -28,7 +28,6 @@ func GeneratePassword(length int) string {
 		nextInt = secureRandomInt(charsetLength)
 		password += string(charset[nextInt])
 	}
-	log.Println("Generated secure password.")
 	return password
 }
 

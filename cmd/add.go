@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"passfish/clipboard"
-	"passfish/passwords"
+	"passfish/internal/clipboard"
+	"passfish/internal/passwords"
 
 	"github.com/spf13/cobra"
 )
@@ -66,14 +66,12 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		copiedToClipboard, err := clipboard.CopyToClipboard(password)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if copiedToClipboard {
+		if err := clipboard.CopyToClipboard(password); err != nil {
+			log.Println("❌ Error copying password to clipboard.")
+		} else {
 			fmt.Println("Password is copied to 📋...")
 		}
+
 		creds := passwords.NewLogin(login, username, password)
 		creds.Encrypt()
 	},
