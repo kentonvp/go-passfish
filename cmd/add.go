@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"passfish/internal/clipboard"
+	"passfish/internal/models"
 	"passfish/internal/passwords"
 
 	"github.com/spf13/cobra"
@@ -71,10 +72,12 @@ var addCmd = &cobra.Command{
 		} else {
 			fmt.Println("Password is copied to 📋...")
 		}
-
-		creds := passwords.NewLogin(login, username, password)
-		creds.Encrypt()
-	},
+		creds := models.Credentials{
+			Title: login,
+			Username: username,
+			Password: passwords.Encrypt(password, config.Passphrase())
+		}
+	}
 }
 
 func init() {
