@@ -46,7 +46,7 @@ var addCmd = &cobra.Command{
 
 		genPassword, err := cmd.Flags().GetBool("create")
 		passwordLength, err := cmd.Flags().GetInt("password-length")
-		password := passwords.GeneratePassword(passwordLength)
+		password := passwords.New(passwordLength)
 		if !genPassword {
 			password, err = readPasswordInput("Enter Password: ")
 			fmt.Println()

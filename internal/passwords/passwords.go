@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/hex"
 	"log"
 	"math/big"
 )
@@ -21,7 +20,7 @@ func secureRandomInt(max int) int {
 const charset string = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=~ `
 const charsetLength int = len(charset)
 
-func GeneratePassword(length int) string {
+func New(length int) string {
 	var (
 		nextInt  int
 		password string = ""
@@ -35,10 +34,14 @@ func GeneratePassword(length int) string {
 	return password
 }
 
+func sha256Hash(input string) []byte {
+	plaintext := []byte(input)
+	h := sha256.Sum256(plaintext)
+	return h[:]
+}
+
 func Encrypt(plaintext string, passphrase string) string {
-	hash := sha256.New()
-	hash.Write([]byte(passphrase))
-	key := hash.Sum(nil)[:32]
+	key := sha256Hash(passphrase)
 
 	// Code taken from: https://dev.to/breda/secret-key-encryption-with-go-using-aes-316d
 	aes, err := aes.NewCipher(key)
@@ -62,15 +65,13 @@ func Encrypt(plaintext string, passphrase string) string {
 	// ciphertext here is actually nonce+ciphertext
 	// So that when we decrypt, just knowing the nonce size
 	// is enough to separate it from the ciphertext.
-	ciphertext := gcm.Seal(nil, nonce, []byte(plaintext), nil)
+	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
 
-	return hex.EncodeToString(ciphertext)
+	return string(ciphertext)
 }
 
 func Decrypt(ciphertext string, passphrase string) string {
-	hash := sha256.New()
-	hash.Write([]byte(passphrase))
-	key := hash.Sum(nil)[:32]
+	key := sha256Hash(passphrase)
 
 	aes, err := aes.NewCipher(key)
 	if err != nil {
@@ -92,5 +93,5 @@ func Decrypt(ciphertext string, passphrase string) string {
 		log.Fatal("error opening gcm", err)
 	}
 
-	return hex.EncodeToString(plaintext)
+	return string(plaintext)
 }
