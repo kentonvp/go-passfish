@@ -67,7 +67,7 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		if err := clipboard.CopyToClipboard(password); err != nil {
+		if err := clipboard.Copy(password); err != nil {
 			log.Println("❌ Error copying password to clipboard.")
 		} else {
 			fmt.Println("Password is copied to 📋...")
@@ -77,6 +77,8 @@ var addCmd = &cobra.Command{
 			Username: username,
 			Password: passwords.Encrypt(password, config.Passphrase())
 		}
+
+		// TODO: Store he credentials
 	}
 }
 
