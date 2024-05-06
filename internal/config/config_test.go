@@ -77,6 +77,13 @@ func TestNewConfigNoDbPath(t *testing.T) {
 	}
 }
 
+func testNewConfigFileNotExist(t *testing.T) {
+	_, err := config.NewConfig("nonexistent.yaml")
+	if err == nil {
+		t.Error("Expected an error, got nil")
+	}
+}
+
 func TestNewConfigNoDbPassphrase(t *testing.T) {
 	// Create a temporary directory
 	dir, err := os.MkdirTemp(".", "t_*")

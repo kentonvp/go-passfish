@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 )
@@ -20,7 +21,7 @@ var rootCmd = &cobra.Command{
 	Short:   "CLI Password Manager",
 	Version: Version,
 	Run: func(cmd *cobra.Command, args []string) {
-		if config, err := cmd.Flags().GetInt("config"); err != nil {
+		if config, err := cmd.Flags().GetString("config"); err != nil {
 			log.Fatal(err)
 		} else {
 			fmt.Println("Using config file: ", config)
@@ -45,6 +46,11 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	dirname = path.Join(dirname, ".config", AppName)
+	err = os.MkdirAll(dirname, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", fmt.Sprintf("%s/.passfish.yaml", dirname), "config file")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", fmt.Sprintf("%s/passfish.yaml", dirname), "config file")
 }

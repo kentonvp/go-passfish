@@ -4,7 +4,8 @@ import (
 	"os/exec"
 )
 
-func CopyToClipboard(text string) error {
+// Copy copies the given text to the clipboard. It uses the pbcopy command on macOS.
+func Copy(text string) error {
 	copyCmd := exec.Command("pbcopy")
 	in, err := copyCmd.StdinPipe()
 	if err != nil {

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"passfish/internal/clipboard"
+	"passfish/internal/config"
+	"passfish/internal/database"
+	"passfish/internal/models"
 	"passfish/internal/passwords"
 
 	"github.com/spf13/cobra"
@@ -13,6 +16,11 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a login",
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg, err := config.NewConfig(cfgFile)
+		db, err := database.NewDB(cfg.DbPath)
+		defer db.Close()
+		db.CreateCredentialsTable()
+
 		login, err := cmd.Flags().GetString("login")
 		if err != nil {
 			log.Fatal(err)
@@ -45,7 +53,7 @@ var addCmd = &cobra.Command{
 
 		genPassword, err := cmd.Flags().GetBool("create")
 		passwordLength, err := cmd.Flags().GetInt("password-length")
-		password := passwords.GeneratePassword(passwordLength)
+		password := passwords.New(passwordLength)
 		if !genPassword {
 			password, err = readPasswordInput("Enter Password: ")
 			fmt.Println()
@@ -66,14 +74,20 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		if err := clipboard.CopyToClipboard(password); err != nil {
+		if err := clipboard.Copy(password); err != nil {
 			log.Println("❌ Error copying password to clipboard.")
 		} else {
 			fmt.Println("Password is copied to 📋...")
 		}
+		creds := models.Credentials{
+			Title:    login,
+			Username: username,
+			Password: passwords.Encrypt(password, cfg.DbPassphrase),
+		}
 
-		creds := passwords.NewLogin(login, username, password)
-		creds.Encrypt()
+		if err := db.InsertCredentials(creds); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
