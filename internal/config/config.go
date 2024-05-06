@@ -32,9 +32,25 @@ func verifyConfig(cfg *Config) error {
 	return nil
 }
 
+func CreateConfigFile(cfgPath string) error {
+	f, err := os.Create(cfgPath)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+
+	if _, err := f.WriteString("dbPath: \ndbPassphrase: "); err != nil {
+		return err
+	}
+	fmt.Printf("Configuration file created successfully at %v! Populate fields before using passfish!", cfgPath)
+	return nil
+}
+
 func NewConfig(cfgPath string) (*Config, error) {
 	var cfg Config
 	reader, err := os.Open(cfgPath)
+	defer reader.Close()
+
 	if err != nil {
 		return nil, err
 	}

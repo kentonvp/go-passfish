@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"passfish/internal/clipboard"
+	"passfish/internal/config"
+	"passfish/internal/database"
 	"passfish/internal/models"
 	"passfish/internal/passwords"
 
@@ -14,6 +16,11 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a login",
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg, err := config.NewConfig(cfgFile)
+		db, err := database.NewDB(cfg.DbPath)
+		defer db.Close()
+		db.CreateCredentialsTable()
+
 		login, err := cmd.Flags().GetString("login")
 		if err != nil {
 			log.Fatal(err)
@@ -73,13 +80,15 @@ var addCmd = &cobra.Command{
 			fmt.Println("Password is copied to 📋...")
 		}
 		creds := models.Credentials{
-			Title: login,
+			Title:    login,
 			Username: username,
-			Password: passwords.Encrypt(password, config.Passphrase())
+			Password: passwords.Encrypt(password, cfg.DbPassphrase),
 		}
 
-		// TODO: Store he credentials
-	}
+		if err := db.InsertCredentials(creds); err != nil {
+			log.Fatal(err)
+		}
+	},
 }
 
 func init() {
