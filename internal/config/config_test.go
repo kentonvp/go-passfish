@@ -77,7 +77,7 @@ func TestNewConfigNoDbPath(t *testing.T) {
 	}
 }
 
-func testNewConfigFileNotExist(t *testing.T) {
+func TestNewConfigFileNotExist(t *testing.T) {
 	_, err := config.NewConfig("nonexistent.yaml")
 	if err == nil {
 		t.Error("Expected an error, got nil")
