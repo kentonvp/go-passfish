@@ -10,7 +10,7 @@ The goal of this project is to develop a secure and user-friendly password manag
 
 - [ ] The application should prompt the user to set a master password during the initial setup.
 - [ ] Subsequent launches should require the user to enter the correct master password for authentication.
-- [ ] Implement a secure key derivation function (e.g., Argon2, scrypt, or PBKDF2) to derive an encryption key from the master password.
+- [x] Implement a secure key derivation function (e.g., Argon2, scrypt, or PBKDF2) to derive an encryption key from the master password.
 
 2. **Password Management**:
 
@@ -29,13 +29,13 @@ The goal of this project is to develop a secure and user-friendly password manag
 
 5. **Data Encryption**:
 
-- [ ] Use a secure encryption algorithm like AES-256 or ChaCha20-Poly1305 to encrypt the password data before storing it.
-- [ ] Ensure that the encryption key is securely derived from the master password and is not stored in plain text.
+- [x] Use a secure encryption algorithm like AES-256 or ChaCha20-Poly1305 to encrypt the password data before storing it.
+- [x] Ensure that the encryption key is securely derived from the master password and is not stored in plain text.
 
 6. **Data Storage**:
 
-- [ ] Store the encrypted password data in a local file or an embedded database (e.g., BoltDB).
-- [ ] Implement functions to read and write the encrypted data securely.
+- [x] Store the encrypted password data in a local file or an embedded database (e.g., BoltDB).
+- [x] Implement functions to read and write the encrypted data securely.
 
 7. **User Interface**:
 
