@@ -32,7 +32,7 @@ func TestNewConfig(t *testing.T) {
 	file.Close()
 
 	// Create a new Config struct
-	cfg, err := config.NewConfig(file.Name())
+	cfg, err := config.New(file.Name())
 	if err != nil {
 		t.Error("Expected nil, got an error")
 	}
@@ -68,7 +68,7 @@ func TestNewConfigNoDbPath(t *testing.T) {
 	}
 	file.Close()
 
-	cfg, err := config.NewConfig(file.Name())
+	cfg, err := config.New(file.Name())
 	if cfg != nil {
 		t.Errorf("Expected nil, got %v", cfg)
 	}
@@ -78,7 +78,7 @@ func TestNewConfigNoDbPath(t *testing.T) {
 }
 
 func TestNewConfigFileNotExist(t *testing.T) {
-	_, err := config.NewConfig("nonexistent.yaml")
+	_, err := config.New("nonexistent.yaml")
 	if err == nil {
 		t.Error("Expected an error, got nil")
 	}
@@ -106,7 +106,7 @@ func TestNewConfigNoDbPassphrase(t *testing.T) {
 	}
 	file.Close()
 
-	cfg, err := config.NewConfig(file.Name())
+	cfg, err := config.New(file.Name())
 	if cfg != nil {
 		t.Errorf("Expected nil, got %v", cfg)
 	}

@@ -46,7 +46,7 @@ func CreateConfigFile(cfgPath string) error {
 	return nil
 }
 
-func NewConfig(cfgPath string) (*Config, error) {
+func New(cfgPath string) (*Config, error) {
 	var cfg Config
 	reader, err := os.Open(cfgPath)
 

@@ -25,7 +25,7 @@ const nTestUsers int = 10
 
 func mockDb() (*database.Db, string) {
 	dbPath := mockDbPath()
-	db, err := database.NewDB(dbPath)
+	db, err := database.New(dbPath)
 	if err != nil {
 		panic(err)
 	}
@@ -47,11 +47,11 @@ func mockDb() (*database.Db, string) {
 	return db, dbPath
 }
 
-func TestNewDb(t *testing.T) {
+func TestNew(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
-	db, err := database.NewDB(dbPath)
+	db, err := database.New(dbPath)
 	if err != nil {
 		t.Error("Expected nil, got an error")
 	}
@@ -62,7 +62,7 @@ func TestCreateCredentialsTable(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
-	db, _ := database.NewDB(dbPath)
+	db, _ := database.New(dbPath)
 	defer db.Close()
 
 	if err := db.CreateCredentialsTable(); err != nil {
@@ -74,7 +74,7 @@ func TestInsertCredential(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
-	db, _ := database.NewDB(dbPath)
+	db, _ := database.New(dbPath)
 	defer db.Close()
 
 	err := db.CreateCredentialsTable()
