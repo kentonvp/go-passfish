@@ -34,10 +34,10 @@ func verifyConfig(cfg *Config) error {
 
 func CreateConfigFile(cfgPath string) error {
 	f, err := os.Create(cfgPath)
-	defer f.Close()
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	if _, err := f.WriteString("dbPath: \ndbPassphrase: "); err != nil {
 		return err
@@ -49,11 +49,11 @@ func CreateConfigFile(cfgPath string) error {
 func NewConfig(cfgPath string) (*Config, error) {
 	var cfg Config
 	reader, err := os.Open(cfgPath)
-	defer reader.Close()
 
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 
 	if err := yaml.NewDecoder(reader).Decode(&cfg); err != nil {
 		return nil, err

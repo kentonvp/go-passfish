@@ -15,6 +15,9 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check if the configuration file exists.
 		f, err := os.Open(cfgFile)
+		if err != nil {
+			log.Fatal(err)
+		}
 		defer f.Close()
 		if err == nil {
 			fmt.Println("WARNING!!! Configuration file already exists!")

@@ -17,7 +17,15 @@ var addCmd = &cobra.Command{
 	Short: "Add a login",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := config.NewConfig(cfgFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		db, err := database.NewDB(cfg.DbPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		defer db.Close()
 		db.CreateCredentialsTable()
 

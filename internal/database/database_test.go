@@ -52,11 +52,10 @@ func TestNewDb(t *testing.T) {
 	defer cleanUp(path.Dir(dbPath))
 
 	db, err := database.NewDB(dbPath)
-	defer db.Close()
-
 	if err != nil {
 		t.Error("Expected nil, got an error")
 	}
+	db.Close()
 }
 
 func TestCreateCredentialsTable(t *testing.T) {
