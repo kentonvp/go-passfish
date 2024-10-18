@@ -25,7 +25,7 @@ const nTestUsers int = 10
 
 func mockDb() (*database.Db, string) {
 	dbPath := mockDbPath()
-	db, err := database.NewDB(dbPath)
+	db, err := database.New(dbPath)
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +35,7 @@ func mockDb() (*database.Db, string) {
 	}
 
 	for i := 0; i < nTestUsers; i++ {
-		if err := db.InsertCredentials(models.Credentials{
+		if err := db.InsertCredentials(models.BaseCredentials{
 			Title:    fmt.Sprintf("loginTitle%d", i),
 			Username: fmt.Sprintf("user%d", i),
 			Password: "password",
@@ -47,23 +47,22 @@ func mockDb() (*database.Db, string) {
 	return db, dbPath
 }
 
-func TestNewDb(t *testing.T) {
+func TestNew(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
-	db, err := database.NewDB(dbPath)
-	defer db.Close()
-
+	db, err := database.New(dbPath)
 	if err != nil {
 		t.Error("Expected nil, got an error")
 	}
+	db.Close()
 }
 
 func TestCreateCredentialsTable(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
-	db, _ := database.NewDB(dbPath)
+	db, _ := database.New(dbPath)
 	defer db.Close()
 
 	if err := db.CreateCredentialsTable(); err != nil {
@@ -75,7 +74,7 @@ func TestInsertCredential(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
-	db, _ := database.NewDB(dbPath)
+	db, _ := database.New(dbPath)
 	defer db.Close()
 
 	err := db.CreateCredentialsTable()
@@ -83,7 +82,7 @@ func TestInsertCredential(t *testing.T) {
 		t.Error("Unexpected error: creating credentials table in TestInsertCredential", err)
 	}
 
-	creds := models.Credentials{
+	creds := models.BaseCredentials{
 		Title:    "loginTitle",
 		Username: "user1",
 		Password: "password",
@@ -119,8 +118,8 @@ func TestGetCredentials(t *testing.T) {
 		t.Error("Expected nil, got an error")
 	}
 
-	if creds.Username != "user0" {
-		t.Error("Expected \"user0\", got ", creds.Username)
+	if creds.Base.Username != "user0" {
+		t.Error("Expected \"user0\", got ", creds.Base.Username)
 	}
 
 	creds, err = db.GetCredentials("loginTitle9")
@@ -128,8 +127,8 @@ func TestGetCredentials(t *testing.T) {
 		t.Error("Expected nil, got an error")
 	}
 
-	if creds.Username != "user9" {
-		t.Error("Expected \"user9\", got ", creds.Username)
+	if creds.Base.Username != "user9" {
+		t.Error("Expected \"user9\", got ", creds.Base.Username)
 	}
 }
 
@@ -143,15 +142,15 @@ func TestUpdateCredentials(t *testing.T) {
 	if err != nil {
 		t.Error("Expected nil, got an error")
 	}
-	if creds.Username != "user0" {
-		t.Error("Expected \"user0\", got ", creds.Username)
+	if creds.Base.Username != "user0" {
+		t.Error("Expected \"user0\", got ", creds.Base.Username)
 	}
-	if creds.Password != "password" {
-		t.Error("Expected \"password\", got ", creds.Password)
+	if creds.Base.Password != "password" {
+		t.Error("Expected \"password\", got ", creds.Base.Password)
 	}
 
 	// Update the \"loginTitle0\" credentials.
-	newCreds := models.Credentials{
+	newCreds := models.BaseCredentials{
 		Title:    "loginTitle0",
 		Username: "USER0",
 		Password: "PASSWORD",
@@ -166,11 +165,11 @@ func TestUpdateCredentials(t *testing.T) {
 		t.Error("Expected nil, got an error")
 	}
 
-	if creds.Username != "USER0" {
-		t.Error("Expected \"USER0\", got ", creds.Username)
+	if creds.Base.Username != "USER0" {
+		t.Error("Expected \"USER0\", got ", creds.Base.Username)
 	}
-	if creds.Password != "PASSWORD" {
-		t.Error("Expected \"PASSWORD\", got ", creds.Password)
+	if creds.Base.Password != "PASSWORD" {
+		t.Error("Expected \"PASSWORD\", got ", creds.Base.Password)
 	}
 }
 
@@ -184,8 +183,8 @@ func TestDeleteCredentials(t *testing.T) {
 	if err != nil {
 		t.Error("Expected nil, got an error")
 	}
-	if creds.Username != "user0" {
-		t.Error("Expected \"user0\", got ", creds.Username)
+	if creds.Base.Username != "user0" {
+		t.Error("Expected \"user0\", got ", creds.Base.Username)
 	}
 
 	// Delete the credentials.
@@ -197,5 +196,26 @@ func TestDeleteCredentials(t *testing.T) {
 	_, err = db.GetCredentials("loginTitle0")
 	if err == nil {
 		t.Error("Expected an error, got nil")
+	}
+}
+
+func TestNumberOfCredentials(t *testing.T) {
+	db, dbPath := mockDb()
+	defer cleanUp(path.Dir(dbPath))
+	defer db.Close()
+
+	// Confirm that the credentials exist.
+	creds, err := db.GetCredentials("loginTitle0")
+	if err != nil {
+		t.Error("Expected nil, got an error")
+	}
+	if creds.Base.Username != "user0" {
+		t.Error("Expected \"user0\", got ", creds.Base.Username)
+	}
+
+	// Delete the credentials.
+	cnt := db.NumberOfCredentials()
+	if cnt != nTestUsers {
+		t.Error("Expected", nTestUsers, ", got", cnt)
 	}
 }

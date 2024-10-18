@@ -16,8 +16,16 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a login",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.NewConfig(cfgFile)
-		db, err := database.NewDB(cfg.DbPath)
+		cfg, err := config.New(cfgFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		db, err := database.New(cfg.DbPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		defer db.Close()
 		db.CreateCredentialsTable()
 
@@ -25,10 +33,10 @@ var addCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		if login == "" {
+		for login == "" {
 			login, err = readStringInput("Enter Login: ")
 			if login == "" {
-				log.Fatal("❌ Login cannot be empty.")
+				log.Print("❌ Login cannot be empty.")
 			}
 			if err != nil {
 				log.Fatal(err)
@@ -41,36 +49,38 @@ var addCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		if username == "" {
+		for username == "" {
 			username, err = readStringInput(fmt.Sprintf("Enter a username for %s: ", login))
 			if username == "" {
-				log.Fatal("❌ Username cannot be empty.")
+				log.Print("❌ Username cannot be empty.")
 			}
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
-		genPassword, err := cmd.Flags().GetBool("create")
-		passwordLength, err := cmd.Flags().GetInt("password-length")
+		genPassword, _ := cmd.Flags().GetBool("create")
+		passwordLength, _ := cmd.Flags().GetInt("password-length")
 		password := passwords.New(passwordLength)
 		if !genPassword {
 			password, err = readPasswordInput("Enter Password: ")
+			if err != nil {
+				log.Fatal(err)
+			}
 			fmt.Println()
 			if password == "" {
-				log.Fatal("❌ Password cannot be empty.")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
-			confirmation, err := readPasswordInput("Confirm Password: ")
-			fmt.Println()
-			if err != nil {
-				log.Fatal(err)
-			}
+				log.Print("Entered empty password, using a generated password instead.")
+				password = passwords.New(passwordLength)
+			} else {
+				confirmation, err := readPasswordInput("Confirm Password: ")
+				fmt.Println()
+				if err != nil {
+					log.Fatal(err)
+				}
 
-			if password != confirmation {
-				log.Fatal("❌ Passwords do not match!!!")
+				if password != confirmation {
+					log.Fatal("❌ Passwords do not match!!!")
+				}
 			}
 		}
 
@@ -79,7 +89,7 @@ var addCmd = &cobra.Command{
 		} else {
 			fmt.Println("Password is copied to 📋...")
 		}
-		creds := models.Credentials{
+		creds := models.BaseCredentials{
 			Title:    login,
 			Username: username,
 			Password: passwords.Encrypt(password, cfg.DbPassphrase),
