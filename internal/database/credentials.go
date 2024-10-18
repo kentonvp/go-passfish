@@ -28,6 +28,17 @@ func (db *Db) InsertCredentials(creds models.BaseCredentials) error {
 	return err
 }
 
+func (db *Db) NumberOfCredentials() int {
+	sqlStmt := `
+	select count(*) from credentials;
+	`
+	row := db.Conn.QueryRow(sqlStmt)
+
+	var count int
+	row.Scan(&count)
+	return count
+}
+
 func (db *Db) GetTitles() ([]string, error) {
 	sqlStmt := `
 	select title from credentials;

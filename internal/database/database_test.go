@@ -198,3 +198,24 @@ func TestDeleteCredentials(t *testing.T) {
 		t.Error("Expected an error, got nil")
 	}
 }
+
+func TestNumberOfCredentials(t *testing.T) {
+	db, dbPath := mockDb()
+	defer cleanUp(path.Dir(dbPath))
+	defer db.Close()
+
+	// Confirm that the credentials exist.
+	creds, err := db.GetCredentials("loginTitle0")
+	if err != nil {
+		t.Error("Expected nil, got an error")
+	}
+	if creds.Base.Username != "user0" {
+		t.Error("Expected \"user0\", got ", creds.Base.Username)
+	}
+
+	// Delete the credentials.
+	cnt := db.NumberOfCredentials()
+	if cnt != nTestUsers {
+		t.Error("Expected", nTestUsers, ", got", cnt)
+	}
+}
