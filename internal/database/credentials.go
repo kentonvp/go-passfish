@@ -79,6 +79,15 @@ func (db *Db) GetCredentials(title string) (*models.Credentials, error) {
 	return &creds, nil
 }
 
+func (db *Db) MarkAccessed(title string) error {
+	sqlStmt := `
+	update credentials set last_accessed = current_timestamp where title = ?;
+	`
+
+	_, err := db.Conn.Exec(sqlStmt, title)
+	return err
+}
+
 func (db *Db) UpdateCredentials(creds models.BaseCredentials) error {
 	sqlStmt := `
 	update credentials set username = ?, password = ? where title = ?;
