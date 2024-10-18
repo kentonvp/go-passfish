@@ -87,7 +87,7 @@ var addCmd = &cobra.Command{
 		} else {
 			fmt.Println("Password is copied to 📋...")
 		}
-		creds := models.Credentials{
+		creds := models.BaseCredentials{
 			Title:    login,
 			Username: username,
 			Password: passwords.Encrypt(password, cfg.DbPassphrase),
