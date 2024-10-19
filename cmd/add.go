@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+  "os"
 	"log"
 	"passfish/internal/clipboard"
 	"passfish/internal/config"
@@ -25,8 +26,19 @@ var addCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		defer db.Close()
+
+    // Lookup passphrase first
+    passphrase, found := os.LookupEnv("PASSFISH_PASSPHRASE")
+    if !found {
+      passphrase, err = readStringInput("Enter the passphrase: ")
+      if err != nil {
+        log.Fatal(err)
+      }
+    }
+
+    // TODO: verify_passphrase
+
 		db.CreateCredentialsTable()
 
 		login, err := cmd.Flags().GetString("login")
@@ -92,7 +104,7 @@ var addCmd = &cobra.Command{
 		creds := models.BaseCredentials{
 			Title:    login,
 			Username: username,
-			Password: passwords.Encrypt(password, cfg.DbPassphrase),
+			Password: passwords.Encrypt(password, passphrase),
 		}
 
 		if err := db.InsertCredentials(creds); err != nil {

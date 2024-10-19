@@ -9,7 +9,6 @@ import (
 
 type Config struct {
 	DbPath       string `yaml:"dbPath"`
-	DbPassphrase string `yaml:"dbPassphrase"`
 }
 
 type MissingFieldError struct {
@@ -24,11 +23,6 @@ func verifyConfig(cfg *Config) error {
 	if cfg.DbPath == "" {
 		return &MissingFieldError{Field: "dbPath"}
 	}
-
-	if cfg.DbPassphrase == "" {
-		return &MissingFieldError{Field: "dbPassphrase"}
-	}
-
 	return nil
 }
 
@@ -39,7 +33,7 @@ func CreateConfigFile(cfgPath string) error {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("dbPath: \ndbPassphrase: "); err != nil {
+	if _, err := f.WriteString("dbPath: shhh.db"); err != nil {
 		return err
 	}
 	fmt.Printf("Configuration file created successfully at %v! Populate fields before using passfish!", cfgPath)

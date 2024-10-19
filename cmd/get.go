@@ -10,6 +10,7 @@ import (
 	"passfish/internal/models"
 	"passfish/internal/stringutils"
 	"strings"
+  "os"
 
 	"github.com/spf13/cobra"
 )
@@ -53,13 +54,24 @@ var goCmd = &cobra.Command{
 
 				// Reset to trigger user prompt again
 				login = ""
-			} else {
-				fmt.Printf("Username %s\n", cred.Base.Username)
-				fmt.Printf("Copied 🔑\n")
-				clipboard.Copy(cred.DecryptPassword(cfg.DbPassphrase))
-				db.MarkAccessed(login)
-				break
+        continue
 			}
+
+      passphrase, found := os.LookupEnv("PASSFISH_PASSPHRASE")
+      if !found {
+        passphrase, err = readStringInput("Enter the passphrase: ")
+        if err != nil {
+          log.Fatal(err)
+        }
+      }
+
+      // TODO: verify_passphrase
+
+      clipboard.Copy(cred.DecryptPassword(passphrase))
+      fmt.Printf("Username %s\n", cred.Base.Username)
+      fmt.Printf("Copied 🔑\n")
+      db.MarkAccessed(login)
+      break
 		}
 	},
 }
