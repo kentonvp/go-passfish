@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
+  "os"
 	"log"
 	"passfish/internal/clipboard"
-	"passfish/internal/config"
 	"passfish/internal/database"
 	"passfish/internal/models"
 	"passfish/internal/passwords"
@@ -16,18 +16,24 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a login",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.New(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		db, err := database.New(cfg.DbPath)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		defer db.Close()
-		db.CreateCredentialsTable()
+
+    // Lookup passphrase first
+    passphrase, found := os.LookupEnv("PASSFISH_PASSPHRASE")
+    if !found {
+      passphrase, err = readPasswordInput("Enter the passphrase: ")
+      if err != nil {
+        log.Fatal(err)
+      }
+    }
+
+    if !db.VerifyPassphrase(passphrase) {
+      log.Fatal("❌ Incorrect passphrase.")
+    }
 
 		login, err := cmd.Flags().GetString("login")
 		if err != nil {
@@ -51,11 +57,12 @@ var addCmd = &cobra.Command{
 		}
 		for username == "" {
 			username, err = readStringInput(fmt.Sprintf("Enter a username for %s: ", login))
-			if username == "" {
-				log.Print("❌ Username cannot be empty.")
-			}
 			if err != nil {
 				log.Fatal(err)
+			}
+
+			if username == "" {
+				log.Print("❌ Username cannot be empty.")
 			}
 		}
 
@@ -92,7 +99,7 @@ var addCmd = &cobra.Command{
 		creds := models.BaseCredentials{
 			Title:    login,
 			Username: username,
-			Password: passwords.Encrypt(password, cfg.DbPassphrase),
+			Password: passwords.Encrypt(password, passphrase),
 		}
 
 		if err := db.InsertCredentials(creds); err != nil {

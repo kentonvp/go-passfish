@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"passfish/internal/clipboard"
-	"passfish/internal/config"
 	"passfish/internal/database"
 	"passfish/internal/models"
 	"passfish/internal/stringutils"
 	"strings"
+  "os"
 
 	"github.com/spf13/cobra"
 )
@@ -18,11 +18,6 @@ var goCmd = &cobra.Command{
 	Use:   "go",
 	Short: "Get a login",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.New(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		db, err := database.New(cfg.DbPath)
 		if err != nil {
 			log.Fatal(err)
@@ -53,13 +48,26 @@ var goCmd = &cobra.Command{
 
 				// Reset to trigger user prompt again
 				login = ""
-			} else {
-				fmt.Printf("Username %s\n", cred.Base.Username)
-				fmt.Printf("Copied 🔑\n")
-				clipboard.Copy(cred.DecryptPassword(cfg.DbPassphrase))
-				db.MarkAccessed(login)
-				break
+        continue
 			}
+
+      passphrase, found := os.LookupEnv("PASSFISH_PASSPHRASE")
+      if !found {
+        passphrase, err = readPasswordInput("Enter the passphrase: ")
+        if err != nil {
+          log.Fatal(err)
+        }
+      }
+
+      if !db.VerifyPassphrase(passphrase) {
+        log.Fatal("❌ Incorrect passphrase!")
+      }
+
+      clipboard.Copy(cred.DecryptPassword(passphrase))
+      fmt.Printf("Username %s\n", cred.Base.Username)
+      fmt.Printf("Copied 🔑\n")
+      db.MarkAccessed(login)
+      break
 		}
 	},
 }

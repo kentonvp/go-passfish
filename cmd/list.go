@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"passfish/internal/config"
 	"passfish/internal/database"
 	"passfish/internal/models"
 	"passfish/internal/stringutils"
@@ -16,22 +15,11 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Display added logins",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.New(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		db, err := database.New(cfg.DbPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer db.Close()
-
-		// Check if the time_sorted flag is set.
-		time_sorted, err := cmd.Flags().GetBool("time-sorted")
-		if err != nil {
-			log.Fatal(err)
-		}
 
 		titles, err := db.GetTitles()
 		if err != nil {
@@ -46,23 +34,16 @@ var listCmd = &cobra.Command{
 			}
 			creds = append(creds, *cred)
 		}
-		if time_sorted {
-			// Display logins sorted by most recently accessed.
-			fmt.Println("🕰️ Displaying logins sorted by most recently accessed.")
 
-			// Sort creds by their last accessed time.
-			sort.Slice(creds, func(i int, j int) bool {
-				return creds[i].LastAccessed.Compare(creds[j].LastAccessed) > 0
-			})
-		} else {
-			// Display logins sorted by name.
-			fmt.Println("🔤 Displaying logins sorted by name.")
+    // Display logins sorted by most recently accessed.
+    fmt.Println("🕰️ Displaying logins sorted by most recently accessed.")
 
-			// Sort creds by their title.
-			sort.Slice(creds, func(i int, j int) bool {
-				return creds[i].Base.Title < creds[j].Base.Title
-			})
-		}
+    // Sort creds by their last accessed time.
+    sort.Slice(creds, func(i int, j int) bool {
+      return creds[i].LastAccessed.Compare(creds[j].LastAccessed) > 0
+    })
+
+    // Display the logins.
 		for i, cred := range creds {
 			fmt.Printf("%3d | %s | %s | %s\n",
 				i,
@@ -75,6 +56,4 @@ var listCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-
-	listCmd.Flags().BoolP("time-sorted", "t", false, "sort logins by most recently accessed")
 }

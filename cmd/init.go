@@ -3,8 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
-	"passfish/internal/config"
+	"passfish/internal/database"
 
 	"github.com/spf13/cobra"
 )
@@ -13,36 +12,31 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize the password manager",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Check if the configuration file exists.
-		f, err := os.Open(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-		if err == nil {
-			fmt.Println("WARNING!!! Configuration file already exists!")
-			var resp string = ""
-			for resp == "" {
-				resp, err = readStringInput("Do you want to overwrite the configuration file? (y/n): ")
-				if err != nil {
-					log.Fatal(err)
-				}
-				if resp != "y" && resp != "n" {
-					fmt.Printf("Please try again, \"%v\" is not a valid response.\n", resp)
-					resp = ""
-				}
-			}
+    db, err := database.New(cfg.DbPath)
+    if err != nil {
+      log.Fatal(err)
+    }
+    defer db.Close()
 
-			if resp == "n" {
-				fmt.Println("Exiting...")
-				os.Exit(0)
-			}
-		}
+    // Create tables if they don't exist
+    db.CreateTables()
 
-		// Overwrite the configuration file
-		if err := config.CreateConfigFile(cfgFile); err != nil {
-			log.Fatal(err)
-		}
+    passphrase := db.GetPassphrase()
+    for passphrase == "" {
+      resp, err := readPasswordInput("Insert a passphrase, this should be *extra* secret: ")
+      if err != nil {
+        log.Fatal(err)
+      }
+      if len(resp) < 8 {
+        fmt.Println("Come on... Your passphrase must be at LEAST 8 characters long.")
+        continue
+      }
+
+      passphrase = resp
+      if err = db.SetPassphrase(passphrase); err != nil {
+        log.Fatal(err)
+      }
+    }
 	},
 }
 

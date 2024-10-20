@@ -29,3 +29,15 @@ func New(dbPath string) (*Db, error) {
 func (db *Db) Close() {
 	db.Conn.Close()
 }
+
+func (db *Db) CreateTables() error {
+  if err := db.createCredentialsTable(); err != nil {
+    return err
+  }
+
+  if err := db.createPassphraseTable(); err != nil {
+    return err
+  }
+
+  return nil
+}
