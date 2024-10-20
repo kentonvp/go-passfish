@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"passfish/internal/config"
 	"passfish/internal/database"
 	"passfish/internal/models"
 	"passfish/internal/stringutils"
@@ -16,11 +15,6 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Display added logins",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.New(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		db, err := database.New(cfg.DbPath)
 		if err != nil {
 			log.Fatal(err)

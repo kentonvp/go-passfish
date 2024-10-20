@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"passfish/internal/clipboard"
-	"passfish/internal/config"
 	"passfish/internal/database"
 	"passfish/internal/models"
 	"passfish/internal/stringutils"
@@ -19,11 +18,6 @@ var goCmd = &cobra.Command{
 	Use:   "go",
 	Short: "Get a login",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.New(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		db, err := database.New(cfg.DbPath)
 		if err != nil {
 			log.Fatal(err)

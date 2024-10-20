@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"passfish/internal/config"
 	"passfish/internal/database"
 	"passfish/internal/stringutils"
 	"strings"
@@ -20,10 +19,6 @@ var searchCmd = &cobra.Command{
 		if len(args) == 0 {
 			log.Println("🔎 No search terms provided.")
 			os.Exit(0)
-		}
-		cfg, err := config.New(cfgFile)
-		if err != nil {
-			log.Fatal(err)
 		}
 
 		db, err := database.New(cfg.DbPath)

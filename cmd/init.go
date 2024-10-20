@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"passfish/internal/config"
 
 	"github.com/spf13/cobra"
 )
@@ -13,12 +12,6 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize the password manager",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Check if the configuration file exists.
-		f, err := os.Open(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
 		if err == nil {
 			fmt.Println("WARNING!!! Configuration file already exists!")
 			var resp string = ""
