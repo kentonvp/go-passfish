@@ -24,27 +24,29 @@ func cleanUp(dir string) {
 const nTestUsers int = 10
 
 func mockDb() (*database.Db, string) {
-	dbPath := mockDbPath()
-	db, err := database.New(dbPath)
-	if err != nil {
-		panic(err)
-	}
+  dbPath := mockDbPath()
+  db, err := database.New(dbPath)
+  if err != nil {
+    panic(err)
+  }
 
-	if err := db.CreateCredentialsTable(); err != nil {
-		panic(err)
-	}
+  if err = db.CreateTables(); err != nil {
+    panic(err)
+  }
 
-	for i := 0; i < nTestUsers; i++ {
-		if err := db.InsertCredentials(models.BaseCredentials{
-			Title:    fmt.Sprintf("loginTitle%d", i),
-			Username: fmt.Sprintf("user%d", i),
-			Password: "password",
-		}); err != nil {
-			panic(err)
-		}
-	}
+  return db, dbPath
+}
 
-	return db, dbPath
+func addTestUsers(db *database.Db) {
+  for i := 0; i < nTestUsers; i++ {
+    if err := db.InsertCredentials(models.BaseCredentials{
+      Title:    fmt.Sprintf("loginTitle%d", i),
+      Username: fmt.Sprintf("user%d", i),
+      Password: "password",
+    }); err != nil {
+      panic(err)
+    }
+  }
 }
 
 func TestNew(t *testing.T) {
@@ -58,29 +60,22 @@ func TestNew(t *testing.T) {
 	db.Close()
 }
 
-func TestCreateCredentialsTable(t *testing.T) {
+func TestCreateTable(t *testing.T) {
 	dbPath := mockDbPath()
 	defer cleanUp(path.Dir(dbPath))
 
 	db, _ := database.New(dbPath)
 	defer db.Close()
 
-	if err := db.CreateCredentialsTable(); err != nil {
+	if err := db.CreateTables(); err != nil {
 		t.Error("Expected nil, got an error")
 	}
 }
 
 func TestInsertCredential(t *testing.T) {
-	dbPath := mockDbPath()
+	db, dbPath := mockDb()
 	defer cleanUp(path.Dir(dbPath))
-
-	db, _ := database.New(dbPath)
 	defer db.Close()
-
-	err := db.CreateCredentialsTable()
-	if err != nil {
-		t.Error("Unexpected error: creating credentials table in TestInsertCredential", err)
-	}
 
 	creds := models.BaseCredentials{
 		Title:    "loginTitle",
@@ -98,6 +93,8 @@ func TestGetTitles(t *testing.T) {
 	defer cleanUp(path.Dir(dbPath))
 	defer db.Close()
 
+  addTestUsers(db)
+
 	titles, err := db.GetTitles()
 	if err != nil {
 		t.Error("Expected nil, got an error")
@@ -112,6 +109,8 @@ func TestGetCredentials(t *testing.T) {
 	db, dbPath := mockDb()
 	defer cleanUp(path.Dir(dbPath))
 	defer db.Close()
+
+  addTestUsers(db)
 
 	creds, err := db.GetCredentials("loginTitle0")
 	if err != nil {
@@ -136,6 +135,8 @@ func TestUpdateCredentials(t *testing.T) {
 	db, dbPath := mockDb()
 	defer cleanUp(path.Dir(dbPath))
 	defer db.Close()
+
+  addTestUsers(db)
 
 	// Confirm that the credentials start as lowercase.
 	creds, err := db.GetCredentials("loginTitle0")
@@ -178,6 +179,8 @@ func TestDeleteCredentials(t *testing.T) {
 	defer cleanUp(path.Dir(dbPath))
 	defer db.Close()
 
+  addTestUsers(db)
+
 	// Confirm that the credentials exist.
 	creds, err := db.GetCredentials("loginTitle0")
 	if err != nil {
@@ -204,18 +207,74 @@ func TestNumberOfCredentials(t *testing.T) {
 	defer cleanUp(path.Dir(dbPath))
 	defer db.Close()
 
-	// Confirm that the credentials exist.
-	creds, err := db.GetCredentials("loginTitle0")
-	if err != nil {
-		t.Error("Expected nil, got an error")
-	}
-	if creds.Base.Username != "user0" {
-		t.Error("Expected \"user0\", got ", creds.Base.Username)
-	}
+  addTestUsers(db)
 
-	// Delete the credentials.
 	cnt := db.NumberOfCredentials()
 	if cnt != nTestUsers {
 		t.Error("Expected", nTestUsers, ", got", cnt)
 	}
+}
+
+func TestSetPassphrase(t *testing.T) {
+  db, dbPath := mockDb()
+  defer cleanUp(path.Dir(dbPath))
+  defer db.Close()
+
+  if err := db.SetPassphrase("passphrase"); err != nil {
+    t.Error("Expected nil, got an error")
+  }
+}
+
+func TestVerifyPassphrase(t *testing.T) {
+  db, dbPath := mockDb()
+  defer cleanUp(path.Dir(dbPath))
+  defer db.Close()
+
+  if err := db.SetPassphrase("passphrase"); err != nil {
+    t.Error("Expected nil, got an error")
+  }
+
+  if !db.VerifyPassphrase("passphrase") {
+    t.Error("Expected true, got false")
+  }
+}
+
+func TestSetPassphraseMulti(t *testing.T) {
+  db, dbPath := mockDb()
+  defer cleanUp(path.Dir(dbPath))
+  defer db.Close()
+
+  if err := db.SetPassphrase("passphrase"); err != nil {
+    t.Error("Expected nil, got an error")
+  }
+
+  // Second set should fail
+  if err := db.SetPassphrase("passphrase"); err == nil {
+    t.Error("Expected err, got nil")
+  }
+}
+
+func TestGetPassphraseEmpty(t *testing.T) {
+  db, dbPath := mockDb()
+  defer cleanUp(path.Dir(dbPath))
+  defer db.Close()
+
+  if passphrase := db.GetPassphrase(); passphrase != "" {
+    t.Error("Expected \"\", got", passphrase)
+  }
+}
+
+func TestGetPassphrase(t *testing.T) {
+  db, dbPath := mockDb()
+  defer cleanUp(path.Dir(dbPath))
+  defer db.Close()
+
+  if err := db.SetPassphrase("passphrase"); err != nil {
+    t.Error("Expected nil, got an error")
+  }
+
+  e_passphrase := db.GetPassphrase()
+  if e_passphrase == "passphrase" {
+    t.Error("Expected an encrypted password, got \"passphrase\"")
+  }
 }
