@@ -25,15 +25,15 @@ var addCmd = &cobra.Command{
     // Lookup passphrase first
     passphrase, found := os.LookupEnv("PASSFISH_PASSPHRASE")
     if !found {
-      passphrase, err = readStringInput("Enter the passphrase: ")
+      passphrase, err = readPasswordInput("Enter the passphrase: ")
       if err != nil {
         log.Fatal(err)
       }
     }
 
-    // TODO: verify_passphrase
-
-		db.CreateCredentialsTable()
+    if !db.VerifyPassphrase(passphrase) {
+      log.Fatal("❌ Incorrect passphrase.")
+    }
 
 		login, err := cmd.Flags().GetString("login")
 		if err != nil {
@@ -57,11 +57,12 @@ var addCmd = &cobra.Command{
 		}
 		for username == "" {
 			username, err = readStringInput(fmt.Sprintf("Enter a username for %s: ", login))
-			if username == "" {
-				log.Print("❌ Username cannot be empty.")
-			}
 			if err != nil {
 				log.Fatal(err)
+			}
+
+			if username == "" {
+				log.Print("❌ Username cannot be empty.")
 			}
 		}
 

@@ -5,7 +5,7 @@ import (
 )
 
 // Creates the credentials table if it does not exist.
-func (db *Db) CreateCredentialsTable() error {
+func (db *Db) createCredentialsTable() error {
 	sqlStmt := `
 	create table if not exists credentials (
 		title text not null primary key,

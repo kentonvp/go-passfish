@@ -53,13 +53,15 @@ var goCmd = &cobra.Command{
 
       passphrase, found := os.LookupEnv("PASSFISH_PASSPHRASE")
       if !found {
-        passphrase, err = readStringInput("Enter the passphrase: ")
+        passphrase, err = readPasswordInput("Enter the passphrase: ")
         if err != nil {
           log.Fatal(err)
         }
       }
 
-      // TODO: verify_passphrase
+      if !db.VerifyPassphrase(passphrase) {
+        log.Fatal("❌ Incorrect passphrase!")
+      }
 
       clipboard.Copy(cred.DecryptPassword(passphrase))
       fmt.Printf("Username %s\n", cred.Base.Username)
